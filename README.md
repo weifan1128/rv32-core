@@ -34,11 +34,11 @@ RISCV_CPU/
 │   ├── EX/
 │   │   ├── ALU.sv           # Arithmetic logic unit
 │   │   ├── JB_Unit.sv       # Jump/branch target unit
-│   │   ├── Multiplier.sv    # Multi-cycle multiplier
 │   │   └── EX_MEM.sv        # EX/MEM pipeline register
 │   ├── MEM/
 │   │   ├── ST_align_unit.sv # Store alignment (SB/SH/SW)
 │   │   ├── csr_unit.sv      # CSR counter unit
+|   |   ├── Multiplier.sv    # multiplier
 │   │   └── MEM_WB.sv        # MEM/WB pipeline register
 │   └── WB/
 │       └── LD_align_unit.sv # Load alignment (LB/LH/LBU/LHU)
@@ -60,10 +60,10 @@ RISCV_CPU/
 | `_test_start` | `0x8000` | `DM[0x2000]` |
 | `_sim_end` | `0xFFFC` | `DM[0x3FFF]` |
 
-## Synthesis Results (v1 — Multiplier in EX stage)
+## Synthesis Results (v0.1 — Multiplier in EX stage)
 
-> Tool: Synopsys Design Compiler Q-2019.12  
-> Library: UMC 0.18 µm (`fsa0m_a_generic_core_ss1p62v125c`)  
+> Tool: Synopsys Design Compiler  
+> Library: UMC 0.18 µm  
 > Corner: WCCOM — SS, 1.62 V, 125 °C  
 
 ### Timing
@@ -106,14 +106,69 @@ Operating voltage: 1.62 V
 
 ---
 
-## PPA Comparison Plan
+## Synthesis Results (v0.2 — Multiplier moved to MEM stage)
 
-| Version | Multiplier placement | Target | Status |
-|---------|----------------------|--------|--------|
-| v1 | EX stage (combinational) | 15 ns | ✅ Done |
-| v2 | MEM stage (pipeline reg inserted) | TBD | 🔲 Planned |
+> Tool: Synopsys Design Compiler  
+> Library: UMC 0.18 µm  
+> Corner: WCCOM — SS, 1.62 V, 125 °C  
 
-Goal: by moving the multiplier to the MEM stage, decouple it from the forwarding/branch path and shorten the critical path, trading one stall cycle on MUL for better frequency or lower area/power.
+### Timing
+
+| Parameter | Value |
+|-----------|-------|
+| Clock period | 12.4 ns (80.6 MHz) |
+| Slack | 0.00 ns (just met) |
+| Critical path | DM read → LD_align → WB forwarding mux → EX rs2 mux → ALU → Controller (jb_flush) → IF/ID → Decoder → RegFile → ID/EX |
+| SRAM read delay | 5.74 ns |
+| Data arrival time | 13.19 ns |
+
+**Observation:** Multiplier is no longer on the critical path. The bottleneck is now the SRAM read → load-forwarding → ALU → branch flush → decode chain.
+
+### Area
+
+| Category | Value |
+|----------|-------|
+| Combinational cells | 291,403 µm² |
+| Sequential cells | 103,337 µm² |
+| **Total logic area** | **394,740 µm²** |
+| SRAM macros (×2) | 5,344,495 µm² |
+| **Total cell area** | **5,739,235 µm²** |
+| Cell count | 14,489 (12,718 comb + 1,731 seq + 2 macros) |
+
+### Power
+
+> Note: low-effort analysis with unannotated inputs; values are estimates.
+
+| Group | Power | % |
+|-------|-------|---|
+| Memory (SRAM) | 93.83 mW | 92.01% |
+| Register | 5.73 mW | 5.62% |
+| Combinational | 2.41 mW | 2.37% |
+| **Total dynamic** | **100.73 mW** | — |
+| Leakage | 1.24 mW | — |
+| **Total** | **101.97 mW** | — |
+
+Operating voltage: 1.62 V
+
+---
+
+## PPA Comparison
+
+### Version Descriptions
+
+| Version | ISA | CSR | Microarchitecture change |
+|---------|-----|-----|--------------------------|
+| v0.1 | RV32I + M (MUL/MULH/MULHU/MULHSU) | RDCYCLE, RDCYCLEH, RDINSTRET, RDINSTRETH | Baseline — combinational multiplier in EX stage |
+| v0.2 | RV32I + M (MUL/MULH/MULHU/MULHSU) | RDCYCLE, RDCYCLEH, RDINSTRET, RDINSTRETH | Multiplier moved to MEM stage |
+
+### PPA Summary
+
+| Version | Multiplier | Clock | Slack | Logic Area | Total Area | Total Power |
+|---------|-----------|-------|-------|-----------|-----------|------------|
+| v0.1 | EX stage  | 15 ns | 0.00 ns ✅ | 390,578 µm² | 5,735,073 µm² | 84.46 mW |
+| v0.2 | MEM stage  | 12.4 ns | 0.00 ns ✅ | 394,740 µm² | 5,739,235 µm² | 101.97 mW |
+
+**v0.2 takeaway:** Moving the multiplier out of EX removes it from the critical path. Timing met at 12.4 ns. The new bottleneck is the SRAM load-forwarding → branch-flush → decode chain.
 
 ---
 
@@ -121,11 +176,11 @@ Goal: by moving the multiplier to the MEM stage, decouple it from the forwarding
 
 ```bash
 make rtl0   # prog0 — basic arithmetic (RV32I)
-make rtl1   # prog1 — full RV32I
-make rtl2   # prog2 — multiply (M ext)
-make rtl3   # prog3 — divide (M ext)
-make rtl4   # prog4 — factorial + rdcycle
-make rtl5   # prog5 — signed/unsigned mul + rdcycle
+make rtl1   # prog1 — insertion sort (RV32I)
+make rtl2   # prog2 — signed 64-bit multiply (M ext)
+make rtl3   # prog3 — GCD via subtraction (no M ext)
+make rtl4   # prog4 — factorial + rdcycle/rdinstreth
+make rtl5   # prog5 — signed/unsigned 64-bit multiply
 ```
 
 Pass condition: output prints `Simulation PASS!!` and `sim/progN/result_rtl.txt` matches `golden.hex`.
