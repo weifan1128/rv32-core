@@ -51,7 +51,6 @@ module ALU (
   input  [ 6:0] EX_func7,
   input  [31:0] EX_alu_op1,
   input  [31:0] EX_alu_op2,
-  input  [63:0] EX_mul_res,
   input  [31:0] EX_csr_res,
   output logic [31:0] EX_alu_res
 );
@@ -88,17 +87,13 @@ module ALU (
   always_comb begin
     case(EX_opcode)
       `RTYPE_OPCODE: begin // R-type
-        if (EX_func7[0]) begin // M-extension
-          EX_alu_res = (EX_func3 == 3'b000) ? EX_mul_res[31:0] : EX_mul_res[63:32];
-        end else begin
-          case(EX_func3)
-            3'b000:  EX_alu_res = add_sub_res;
-            3'b001, 3'b101: EX_alu_res = shift_res;
-            3'b010:  EX_alu_res = {31'b0, $signed(EX_alu_op1) < $signed(EX_alu_op2)};
-            3'b011:  EX_alu_res = {31'b0, EX_alu_op1 < EX_alu_op2};
-            default: EX_alu_res = logic_res;
-          endcase
-        end
+        case(EX_func3)
+          3'b000:  EX_alu_res = add_sub_res;
+          3'b001, 3'b101: EX_alu_res = shift_res;
+          3'b010:  EX_alu_res = {31'b0, $signed(EX_alu_op1) < $signed(EX_alu_op2)};
+          3'b011:  EX_alu_res = {31'b0, EX_alu_op1 < EX_alu_op2};
+          default: EX_alu_res = logic_res;
+        endcase
       end
       
       `ITYPE_OPCODE: begin // I-type

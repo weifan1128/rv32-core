@@ -1,11 +1,15 @@
 module EX_MEM (
   input clk,
   input rst,
+  input [31:0] EX_alu_op1,
+  input [31:0] EX_alu_op2,
   input [31:0] EX_alu_res,
   input [31:0] EX_ld_rs2,
   input [31:0] EX_rs2_data,
   input [31:0] EX_ext_imm,
   input [31:0] EX_csr_res,
+  output logic [31:0] MEM_alu_op1,
+  output logic [31:0] MEM_alu_op2,
   output logic [31:0] MEM_alu_res,
   output logic [31:0] MEM_ld_rs2,
   output logic [31:0] MEM_rs2_data,
@@ -15,6 +19,8 @@ module EX_MEM (
 
   always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
+      MEM_alu_op1 <= 32'd0;
+      MEM_alu_op2 <= 32'd0;
       MEM_alu_res <= 32'd0;
       MEM_ld_rs2  <= 32'd0;
       MEM_rs2_data<= 32'd0;
@@ -22,6 +28,8 @@ module EX_MEM (
       MEM_csr_res <= 32'd0;
     end 
     else begin
+      MEM_alu_op1 <= EX_alu_op1;
+      MEM_alu_op2 <= EX_alu_op2;
       MEM_alu_res <= EX_alu_res;
       MEM_ld_rs2  <= EX_ld_rs2;
       MEM_rs2_data<= EX_rs2_data;

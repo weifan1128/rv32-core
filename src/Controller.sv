@@ -34,13 +34,14 @@ module Controller (
   output logic [4:0] EX_rd_idx,
   //To ST AlignUnit
   output logic [ 2:0] MEM_func3,
+  output logic [ 6:0] MEM_func7,
   //To csr
-  output logic [4:0] MEM_opcode,
+  output logic [ 4:0] MEM_opcode,
   //To Reg File
   output logic WB_wb_en,
-  output logic [4:0] WB_rd_idx,
+  output logic [ 4:0] WB_rd_idx,
   //To LD AlignUnit
-  output logic [2:0] WB_func3,
+  output logic [ 2:0] WB_func3,
 
   //To Mux 1
   output logic ID_rs1_data_sel,
@@ -107,6 +108,7 @@ module Controller (
       //MEM
       MEM_opcode <= 5'd4;
       MEM_func3  <= 3'd0;
+      MEM_func7  <= 6'd0;
       MEM_rd_idx <= 5'd0;
       //WB
       WB_opcode <= 5'd4;
@@ -116,6 +118,7 @@ module Controller (
       //EX to MEM
       MEM_opcode <= EX_opcode;
       MEM_func3  <= EX_func3;
+      MEM_func7  <= EX_func7;
       MEM_rd_idx <= EX_rd_idx;
       //MEM to WB
       WB_opcode  <= MEM_opcode;

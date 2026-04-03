@@ -30,7 +30,7 @@ module CPU (
   input [31:0] dm_ld_data,
   output logic [31:0] IF_pc,
   output logic [ 3:0] MEM_dm_w_en,
-  output logic [31:0] MEM_alu_res,
+  output logic [31:0] MEM_alu_mul_res,
   output logic [31:0] MEM_dm_st_data
 );
 
@@ -47,16 +47,16 @@ logic [ 4:0] ID_rs1_idx, ID_rs2_idx, EX_rs1_idx, EX_rs2_idx;
 logic [ 4:0] ID_rd_idx, EX_rd_idx, WB_rd_idx;
 logic [ 4:0] ID_opcode, EX_opcode, MEM_opcode;
 logic [ 2:0] ID_func3, EX_func3, MEM_func3, WB_func3;
-logic [ 6:0] ID_func7, EX_func7;
+logic [ 6:0] ID_func7, EX_func7, MEM_func7;
 logic [31:0] ID_true_inst;
 //csr
 logic [31:0] EX_csr_res, MEM_csr_res, WB_csr_res;
 logic [31:0] MEM_rs1_data;
 logic [ 4:0] MEM_rs1_idx;
 //alu
-logic [31:0] EX_alu_res, WB_alu_res;
-logic [31:0] EX_alu_op1, EX_alu_op2;
-logic [63:0] EX_mul_res;
+logic [31:0] EX_alu_res, MEM_alu_res, WB_alu_res;
+logic [31:0] EX_alu_op1, EX_alu_op2, MEM_alu_op1, MEM_alu_op2;
+logic [31:0] MEM_mul_res;
 logic [31:0] EX_ld_rs2, MEM_ld_rs2;
 //JB
 logic [31:0] jb_op1;
@@ -67,7 +67,7 @@ logic stall, last_stall;
 logic ID_rs1_data_sel, ID_rs2_data_sel;         //mux 1&2 ctrl
 logic [1:0] EX_rs1_data_sel, EX_rs2_data_sel;   //mux 3&4 ctrl
 logic EX_alu_op1_sel, EX_alu_op2_sel, EX_jb_op1_sel;//mux 5 & 6 & 7 ctrl
-logic WB_wb_data_sel;                     //mux 8 ctrl
+logic WB_wb_data_sel;                     //mux 9 ctrl
 //others
 logic rst_buff;
 logic [31:0] WB_dm_data_out;   //mux8 input
@@ -103,6 +103,7 @@ ID_EX ID_EX(
   .rst(rst_buff),
   .stall(stall),
   .jb_flush(jb_flush),
+  .last_jb_flush(last_jb_flush),
   .IF_jb_pc(IF_jb_pc),
   .ID_pc(ID_pc),
   .ID_rs1_data(ID_new_rs1_data),
@@ -146,12 +147,16 @@ RegFile RegFile(
 EX_MEM EX_MEM(
   .clk(clk),
   .rst(rst_buff),
+  .EX_alu_op1(EX_alu_op1),
+  .EX_alu_op2(EX_alu_op2),
   .EX_alu_res(EX_alu_res),
   .EX_ld_rs2(EX_ld_rs2),
   .EX_rs2_data(EX_new_rs2_data),
   .EX_ext_imm(EX_ext_imm),
   .EX_csr_res(EX_csr_res),
 
+  .MEM_alu_op1(MEM_alu_op1),
+  .MEM_alu_op2(MEM_alu_op2),
   .MEM_alu_res(MEM_alu_res),
   .MEM_ld_rs2(MEM_ld_rs2),
   .MEM_rs2_data(MEM_rs2_data),
@@ -165,7 +170,6 @@ ALU ALU(
   .EX_func7(EX_func7),
   .EX_alu_op1(EX_alu_op1),
   .EX_alu_op2(EX_alu_op2),
-  .EX_mul_res(EX_mul_res),
   .EX_csr_res(EX_csr_res),
   .EX_alu_res(EX_alu_res)
 );
@@ -178,10 +182,10 @@ JB_Unit JB_Unit(
 );
 
 Multiplier Multiplier(
-  .mul_op1(EX_alu_op1),
-  .mul_op2(EX_alu_op2),
-  .EX_func3(EX_func3),
-  .EX_mul_res(EX_mul_res)
+  .mul_op1(MEM_alu_op1),
+  .mul_op2(MEM_alu_op2),
+  .MEM_func3(MEM_func3),
+  .MEM_mul_res_o(MEM_mul_res)
 );
 
 // MEM stage
@@ -189,7 +193,7 @@ MEM_WB MEM_WB(
   .clk(clk),
   .rst(rst_buff),
   .MEM_csr_res(MEM_csr_res),
-  .MEM_alu_res(MEM_alu_res),
+  .MEM_alu_res(MEM_alu_mul_res),
   .WB_csr_res(WB_csr_res),
   .WB_alu_res(WB_alu_res)
 );
@@ -210,7 +214,7 @@ CSR_unit csr_unit(
 ST_align_unit ST_align_unit(
   .MEM_opcode(MEM_opcode),
   .MEM_func3(MEM_func3),
-  .MEM_addr_offset(MEM_alu_res[1:0]),
+  .MEM_addr_offset(MEM_alu_mul_res[1:0]),
   .MEM_rs2_data(MEM_rs2_data),
   .MEM_dm_w_en(MEM_dm_w_en),
   .MEM_dm_st_data(MEM_dm_st_data)
@@ -251,6 +255,7 @@ Controller Controller(
   .EX_rd_idx(EX_rd_idx),
   //To ST AlignUnit
   .MEM_func3(MEM_func3),
+  .MEM_func7(MEM_func7),
   //To csr
   .MEM_opcode(MEM_opcode),
   //To Reg File
@@ -285,16 +290,18 @@ Mux_2to1 id_rs1_mux  (.sel(ID_rs1_data_sel),.in1(ID_rs1_data),    .in2(WB_data),
 // mux 2 - ID rs2: regfile or WB forwarding
 Mux_2to1 id_rs2_mux  (.sel(ID_rs2_data_sel),.in1(ID_rs2_data),    .in2(WB_data),         .out(ID_new_rs2_data));
 // mux 3 - EX rs1: MEM→EX / WB→EX / no forward
-Mux_3to1 ex_rs1_mux  (.sel(EX_rs1_data_sel),.in1(MEM_alu_res),    .in2(WB_data),         .in3(EX_rs1_data),    .out(EX_new_rs1_data));
+Mux_3to1 ex_rs1_mux  (.sel(EX_rs1_data_sel),.in1(MEM_alu_mul_res),.in2(WB_data),         .in3(EX_rs1_data),    .out(EX_new_rs1_data));
 // mux 4 - EX rs2: MEM→EX / WB→EX / no forward
-Mux_3to1 ex_rs2_mux  (.sel(EX_rs2_data_sel),.in1(MEM_alu_res),    .in2(WB_data),         .in3(EX_rs2_data),    .out(EX_new_rs2_data));
+Mux_3to1 ex_rs2_mux  (.sel(EX_rs2_data_sel),.in1(MEM_alu_mul_res),.in2(WB_data),         .in3(EX_rs2_data),    .out(EX_new_rs2_data));
 // mux 5 - ALU op1: rs1 or PC (for AUIPC/JAL)
 Mux_2to1 alp_op1_mux (.sel(EX_alu_op1_sel), .in1(EX_pc),          .in2(EX_new_rs1_data), .out(EX_alu_op1));
 // mux 6 - ALU op2: imm or rs2
 Mux_2to1 alp_op2_mux (.sel(EX_alu_op2_sel), .in1(EX_ext_imm),     .in2(EX_new_rs2_data), .out(EX_alu_op2));
 // mux 7 - JB unit sel op1
 Mux_2to1 jb_sel_mux  (.sel(EX_jb_op1_sel),  .in1(EX_pc),          .in2(EX_new_rs1_data), .out(jb_op1));
-// mux 8 - WB data: load / CSR / ALU result
+// mux 8 - MEM alu or mul
+Mux_2to1 alu_mul_mux (.sel(MEM_func7[0] && MEM_opcode == `RTYPE_OPCODE),   .in1(MEM_alu_res),    .in2(MEM_mul_res),     .out(MEM_alu_mul_res));
+// mux 9 - WB data: load / CSR / ALU result
 Mux_2to1 wb_data_mux (.sel(WB_wb_data_sel), .in1(WB_alu_res),     .in2(WB_dm_data_out),  .out(WB_data));
 
 endmodule
