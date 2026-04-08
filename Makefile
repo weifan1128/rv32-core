@@ -2,16 +2,22 @@ root_dir := $(PWD)
 src_dir := ./src
 syn_dir := ./syn
 inc_dir := ./include
-sim_dir := ./sim
+sim_dir_v0 := ./sim_v0
+sim_dir_v1 := ./sim_v1
+vip_dir := $(PWD)/vip
 bld_dir := ./build
+lib_dir := /usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog
+
 FSDB_DEF :=
 ifeq ($(FSDB),1)
 FSDB_DEF := +FSDB
 else ifeq ($(FSDB),2)
 FSDB_DEF := +FSDB_ALL
 endif
-CYCLE=`grep -v '^$$' $(root_dir)/sim/CYCLE`
-MAX=`grep -v '^$$' $(root_dir)/sim/MAX`
+CYCLE=`grep -v '^$$' $(root_dir)/sim_v0/CYCLE`
+MAX=`grep -v '^$$' $(root_dir)/sim_v0/MAX`
+
+export vip_dir
 
 $(bld_dir):
 	mkdir -p $(bld_dir)
@@ -19,232 +25,414 @@ $(bld_dir):
 $(syn_dir):
 	mkdir -p $(syn_dir)
 
-# RTL simulation
-rtl_all: clean rtl0 rtl1 rtl2 rtl3 rtl4 rtl5
+# ============================================================
+# v0: RTL simulation (irun, no AXI)
+# ============================================================
+rtlv0_all: clean_v0 rtlv0_0 rtlv0_1 rtlv0_2 rtlv0_3 rtlv0_4 rtlv0_5
 
-
-	
-#vcs0: | $(bld_dir)
-#	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-#		echo "Cycle time shouldn't exceed 20"; \
-#		exit 1; \
-#	fi; \
-#	make -C $(sim_dir)/prog0/; \
-#	cd $(bld_dir); \
-#	vcs -R -sverilog $(root_dir)/$(sim_dir)/top_tb.sv -debug_access+all -full64 \
-#	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-#	+define+prog0$(FSDB_DEF) \
-#	+prog_path=$(root_dir)/$(sim_dir)/prog0 \
-#	+rdcycle=1
-#
-#vcs_syn0: | $(bld_dir)
-#	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-#		echo "Cycle time shouldn't exceed 20"; \
-#		exit 1; \
-#	fi; \
-#	make -C $(sim_dir)/prog0/; \
-#	cd $(bld_dir); \
-#	vcs -R -sverilog $(root_dir)/$(sim_dir)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose\
-#	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-#	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-#	+define+SYN+prog0$(FSDB_DEF) \
-#	+prog_path=$(root_dir)/$(sim_dir)/prog0 \
-#	+rdcycle=1	
-
-rtl0: | $(bld_dir)
+rtlv0_0: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog0/; \
+	make -C $(sim_dir_v0)/prog0/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+prog0$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog0 \
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog0 \
 	+rdcycle=1
 
-rtl1: | $(bld_dir)
+rtlv0_1: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog1/; \
+	make -C $(sim_dir_v0)/prog1/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+prog1$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog1
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog1
 
-rtl2: | $(bld_dir)
+rtlv0_2: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog2/; \
+	make -C $(sim_dir_v0)/prog2/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+prog2$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog2
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog2
 
-rtl3: | $(bld_dir)
+rtlv0_3: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog3/; \
+	make -C $(sim_dir_v0)/prog3/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+prog3$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog3
-	
-rtl4: | $(bld_dir)
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog3
+
+rtlv0_4: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog4/; \
+	make -C $(sim_dir_v0)/prog4/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+prog4$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog4
-	
-rtl5: | $(bld_dir)
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog4
+
+rtlv0_5: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog5/; \
+	make -C $(sim_dir_v0)/prog5/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+prog5$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog5
-	
-# Post-Synthesis simulation
-syn_all: clean syn0 syn1 syn2 syn3 syn4 syn5
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog5
 
-syn0: | $(bld_dir)
+# ============================================================
+# v0: Post-Synthesis simulation (irun, no AXI)
+# ============================================================
+synv0_all: clean_v0 synv0_0 synv0_1 synv0_2 synv0_3 synv0_4 synv0_5
+
+synv0_0: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog0/; \
+	make -C $(sim_dir_v0)/prog0/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
 	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+SYN+prog0$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog0 \
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog0 \
 	+rdcycle=1
 
-syn1: | $(bld_dir)
+synv0_1: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog1/; \
+	make -C $(sim_dir_v0)/prog1/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
 	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+SYN+prog1$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog1
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog1
 
-syn2: | $(bld_dir)
+synv0_2: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog2/; \
+	make -C $(sim_dir_v0)/prog2/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
 	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+SYN+prog2$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog2
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog2
 
-syn3: | $(bld_dir)
+synv0_3: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog3/; \
+	make -C $(sim_dir_v0)/prog3/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
 	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+SYN+prog3$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog3
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog3
 
-syn4: | $(bld_dir)
+synv0_4: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog4/; \
+	make -C $(sim_dir_v0)/prog4/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
 	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+SYN+prog4$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog4 \
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog4 \
 	+rdcycle=1
 
-syn5: | $(bld_dir)
+synv0_5: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
 		exit 1; \
 	fi; \
-	make -C $(sim_dir)/prog5/; \
+	make -C $(sim_dir_v0)/prog5/; \
 	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	irun $(root_dir)/$(sim_dir_v0)/top_tb.sv \
 	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v0) \
 	+define+SYN+prog5$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog5 \
+	+prog_path=$(root_dir)/$(sim_dir_v0)/prog5 \
 	+rdcycle=1
 
+# ============================================================
+# v1: RTL simulation (vcs, AXI4)
+# ============================================================
+rtlv1_all: clean_v1 rtlv1_0 rtlv1_1 rtlv1_2 rtlv1_3 rtlv1_4 rtlv1_5
+
+rtlv1_0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog0/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+prog0$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog0 \
+	+rdcycle=1
+
+rtlv1_1: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog1/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+prog1$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog1 \
+	+rdcycle=1
+
+rtlv1_2: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog2/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+prog2$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog2 \
+	+rdcycle=1
+
+rtlv1_3: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog3/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+prog3$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog3 \
+	+rdcycle=1
+
+rtlv1_4: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog4/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+prog4$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog4 \
+	+rdcycle=1
+
+rtlv1_5: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog5/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+prog5$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog5 \
+	+rdcycle=1
+
+# ============================================================
+# v1: Post-Synthesis simulation (vcs, AXI4)
+# ============================================================
+synv1_all: clean_v1 synv1_0 synv1_1 synv1_2 synv1_3 synv1_4 synv1_5
+
+synv1_0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog0/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog +neg_tchk -negdelay -v $(lib_dir)/fsa0m_a_generic_core_21.lib.src $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+SYN+prog0$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog0 \
+	+rdcycle=1
+
+synv1_1: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog1/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog +neg_tchk -negdelay -v $(lib_dir)/fsa0m_a_generic_core_21.lib.src $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+SYN+prog1$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog1 \
+	+rdcycle=1
+
+synv1_2: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog2/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog +neg_tchk -negdelay -v $(lib_dir)/fsa0m_a_generic_core_21.lib.src $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+SYN+prog2$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog2 \
+	+rdcycle=1
+
+synv1_3: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog3/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog +neg_tchk -negdelay -v $(lib_dir)/fsa0m_a_generic_core_21.lib.src $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+SYN+prog3$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog3 \
+	+rdcycle=1
+
+synv1_4: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog4/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog +neg_tchk -negdelay -v $(lib_dir)/fsa0m_a_generic_core_21.lib.src $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+SYN+prog4$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog4 \
+	+rdcycle=1
+
+synv1_5: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir_v1)/prog5/; \
+	cd $(bld_dir); \
+	vcs -R -sverilog +neg_tchk -negdelay -v $(lib_dir)/fsa0m_a_generic_core_21.lib.src $(root_dir)/$(sim_dir_v1)/top_tb.sv -debug_access+all -full64 -diag=sdf:verbose \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir_v1) \
+	+define+SYN+prog5$(FSDB_DEF) \
+	+define+CYCLE=$(CYCLE) \
+	+define+MAX=$(MAX) \
+	+prog_path=$(root_dir)/$(sim_dir_v1)/prog5 \
+	+rdcycle=1
+
+# ============================================================
+# AXI VIP (JasperGold formal)
+# ============================================================
+vip_b: clean | $(bld_dir)
+	cd $(bld_dir); \
+	jg ../script/jg_bridge.tcl
+
+vip_m: clean | $(bld_dir)
+	cd $(bld_dir); \
+	jg ../script/jg_master.tcl
+
+vip_s: clean | $(bld_dir)
+	cd $(bld_dir); \
+	jg ../script/jg_slave.tcl
+
+# ============================================================
 # Utilities
+# ============================================================
 nWave: | $(bld_dir)
 	cd $(bld_dir); \
 	nWave &
@@ -316,14 +504,25 @@ tar: check
 	cd ..; \
 	tar cvf $$STUDENTID.tar $$STUDENTID
 
-.PHONY: clean
+.PHONY: clean clean_v0 clean_v1
 
-clean:
-	rm -rf $(bld_dir); \
-	rm -rf $(sim_dir)/prog*/result*.txt; \
-	make -C $(sim_dir)/prog0/ clean; \
-	make -C $(sim_dir)/prog1/ clean; \
-	make -C $(sim_dir)/prog2/ clean; \
-	make -C $(sim_dir)/prog3/ clean; \
-	make -C $(sim_dir)/prog4/ clean; \
-	make -C $(sim_dir)/prog5/ clean;
+clean: clean_v0 clean_v1
+	rm -rf $(bld_dir)
+
+clean_v0:
+	rm -rf $(sim_dir_v0)/prog*/result*.txt; \
+	make -C $(sim_dir_v0)/prog0/ clean; \
+	make -C $(sim_dir_v0)/prog1/ clean; \
+	make -C $(sim_dir_v0)/prog2/ clean; \
+	make -C $(sim_dir_v0)/prog3/ clean; \
+	make -C $(sim_dir_v0)/prog4/ clean; \
+	make -C $(sim_dir_v0)/prog5/ clean
+
+clean_v1:
+	rm -rf $(sim_dir_v1)/prog*/result*.txt; \
+	make -C $(sim_dir_v1)/prog0/ clean; \
+	make -C $(sim_dir_v1)/prog1/ clean; \
+	make -C $(sim_dir_v1)/prog2/ clean; \
+	make -C $(sim_dir_v1)/prog3/ clean; \
+	make -C $(sim_dir_v1)/prog4/ clean; \
+	make -C $(sim_dir_v1)/prog5/ clean

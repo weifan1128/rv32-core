@@ -1,0 +1,34 @@
+# Build artifacts
+build/
+
+# Synthesis outputs
+syn/
+syn_v*/
+syn.log
+
+# Synthesis scripts (not for submission)
+script/
+
+# Simulation config
+sim_v0/CYCLE
+sim_v0/MAX
+sim_v0/signal.rc
+
+# Compiled sim binaries and results (v0)
+sim_v0/prog*/*.o
+sim_v0/prog*/main
+sim_v0/prog*/main.log
+sim_v0/prog*/*.hex
+sim_v0/prog*/result_*.txt
+
+# Compiled sim binaries and results (v1)
+sim_v1/prog*/*.o
+sim_v1/prog*/main
+sim_v1/prog*/main.log
+sim_v1/prog*/*.hex
+sim_v1/prog*/result_*.txt
+
+# OS
+.DS_Store
+sim_v0/.DS_Store
+sim_v1/.DS_Store
