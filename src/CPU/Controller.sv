@@ -1,4 +1,4 @@
-`include "../include/CPU_def.svh"
+`include "CPU_def.svh"
 `define USES_RS1_AS_ALU_OP1(op) \
   ((op == `BRANCH_OPCODE) || (op == `LOAD_OPCODE)  || \
    (op == `STORE_OPCODE)  || (op == `ITYPE_OPCODE) || \

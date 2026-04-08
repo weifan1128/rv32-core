@@ -1,26 +1,26 @@
-`include "../include/CPU_def.svh"
+`include "CPU_def.svh"
 // IF stage
-`include "./IF/IF_ID.sv"
-`include "./IF/Reg_PC.sv"
+`include "./CPU/IF/IF_ID.sv"
+`include "./CPU/IF/Reg_PC.sv"
 // ID stage
-`include "./ID/ID_EX.sv"
-`include "./ID/RegFile.sv"
-`include "./ID/Decoder.sv"
-`include "./ID/Imm_Ext.sv"
+`include "./CPU/ID/ID_EX.sv"
+`include "./CPU/ID/RegFile.sv"
+`include "./CPU/ID/Decoder.sv"
+`include "./CPU/ID/Imm_Ext.sv"
 // EX stage
-`include "./EX/EX_MEM.sv"
-`include "./EX/ALU.sv"
-`include "./EX/JB_Unit.sv"
-`include "./EX/Multiplier.sv"
+`include "./CPU/EX/EX_MEM.sv"
+`include "./CPU/EX/ALU.sv"
+`include "./CPU/EX/JB_Unit.sv"
+`include "./CPU/EX/Multiplier.sv"
 // MEM stage
-`include "./MEM/MEM_WB.sv"
-`include "./MEM/csr_unit.sv"
-`include "./MEM/ST_align_unit.sv"
+`include "./CPU/MEM/MEM_WB.sv"
+`include "./CPU/MEM/csr_unit.sv"
+`include "./CPU/MEM/ST_align_unit.sv"
 // WB stage
-`include "./WB/LD_align_unit.sv"
+`include "./CPU/WB/LD_align_unit.sv"
 // others
-`include "./Controller.sv"
-`include "./rst_buff.sv"
+`include "./CPU/Controller.sv"
+`include "./CPU/rst_buff.sv"
 `include "./Mux.sv"
 
 module CPU (
