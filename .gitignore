@@ -1,3 +1,6 @@
+# Claude Code context file
+CLAUDE.md
+
 # Build artifacts
 build/
 
@@ -8,6 +11,10 @@ syn.log
 
 # Synthesis scripts (not for submission)
 script/
+
+# SRAM IP (copyright, do not commit)
+sim_v0/SRAM/
+sim_v1/SRAM/
 
 # Simulation config
 sim_v0/CYCLE

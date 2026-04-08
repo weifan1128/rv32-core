@@ -42,12 +42,21 @@ RISCV_CPU/
 │   │   └── MEM_WB.sv        # MEM/WB pipeline register
 │   └── WB/
 │       └── LD_align_unit.sv # Load alignment (LB/LH/LBU/LHU)
-├── sim/
-│   ├── top_tb.sv            # Testbench (provided)
-│   ├── SRAM/                # SRAM model (provided)
+├── sim_v0/
+│   ├── top_tb.sv            # Testbench (irun, no AXI)
+│   ├── SRAM/                # SRAM model (not committed, copyright)
 │   └── prog0~5/             # Test programs
+├── sim_v1/
+│   ├── top_tb.sv            # Testbench (vcs, AXI4)
+│   ├── SRAM/                # SRAM model (not committed, copyright)
+│   └── prog0~5/             # Test programs (split IM/DM hex)
+├── src/
+│   └── AXI/
+│       └── AXI.sv           # AXI4 bus (v1 only)
 ├── include/
-│   └── CPU_def.svh          # Shared definitions
+│   ├── CPU_def.svh          # Shared definitions
+│   └── AXI_define.svh       # AXI4 defines (v1 only)
+├── vip/                     # JasperGold AXI formal VIP
 └── Makefile
 ```
 
@@ -175,12 +184,29 @@ Operating voltage: 1.62 V
 ## Simulation
 
 ```bash
-make rtl0   # prog0 — basic arithmetic (RV32I)
-make rtl1   # prog1 — insertion sort (RV32I)
-make rtl2   # prog2 — signed 64-bit multiply (M ext)
-make rtl3   # prog3 — GCD via subtraction (no M ext)
-make rtl4   # prog4 — factorial + rdcycle/rdinstreth
-make rtl5   # prog5 — signed/unsigned 64-bit multiply
+# v0 — irun, no AXI
+make rtlv0_0   # prog0 — basic arithmetic (RV32I)
+make rtlv0_1   # prog1 — insertion sort (RV32I)
+make rtlv0_2   # prog2 — signed 64-bit multiply (M ext)
+make rtlv0_3   # prog3 — GCD via subtraction (no M ext)
+make rtlv0_4   # prog4 — factorial + rdcycle/rdinstreth
+make rtlv0_5   # prog5 — signed/unsigned 64-bit multiply
+make rtlv0_all # run all 6
+
+# v1 — vcs, AXI4
+make rtlv1_0 .. make rtlv1_5
+make rtlv1_all
 ```
 
-Pass condition: output prints `Simulation PASS!!` and `sim/progN/result_rtl.txt` matches `golden.hex`.
+Pass condition: output prints `Simulation PASS!!` and `sim_v0/progN/result_rtl.txt` (or `sim_v1/`) matches `golden.hex`.
+
+---
+
+## Planned Versions
+
+| Version | Description | Status |
+|---------|-------------|--------|
+| v0.1 | Baseline — combinational multiplier in EX stage | Done |
+| v0.2 | Multiplier moved to MEM stage | Done |
+| v1.1 | AXI4 in-order implementation | In progress |
+| v1.2 | AXI4 outstanding (multiple in-flight transactions) | Planned |
