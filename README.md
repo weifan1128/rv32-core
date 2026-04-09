@@ -19,43 +19,47 @@ A SystemVerilog implementation of a 5-stage pipelined RV32IM CPU.
 ```
 RISCV_CPU/
 ├── src/
-│   ├── top.sv               # Top-level module (CPU + SRAM)
-│   ├── CPU.sv               # Pipeline CPU core
-│   ├── Controller.sv        # Control signal decoder
-│   ├── SRAM_wrapper.sv      # SRAM interface wrapper
-│   ├── IF/
-│   │   ├── Reg_PC.sv        # Program counter register
-│   │   └── IF_ID.sv         # IF/ID pipeline register
-│   ├── ID/
-│   │   ├── Decoder.sv       # Instruction decoder
-│   │   ├── Imm_Ext.sv       # Immediate sign extension
-│   │   ├── RegFile.sv       # 32-entry register file
-│   │   └── ID_EX.sv         # ID/EX pipeline register
-│   ├── EX/
-│   │   ├── ALU.sv           # Arithmetic logic unit
-│   │   ├── JB_Unit.sv       # Jump/branch target unit
-│   │   └── EX_MEM.sv        # EX/MEM pipeline register
-│   ├── MEM/
-│   │   ├── ST_align_unit.sv # Store alignment (SB/SH/SW)
-│   │   ├── csr_unit.sv      # CSR counter unit
-|   |   ├── Multiplier.sv    # multiplier
-│   │   └── MEM_WB.sv        # MEM/WB pipeline register
-│   └── WB/
-│       └── LD_align_unit.sv # Load alignment (LB/LH/LBU/LHU)
+│   ├── top_v0.sv            # Top-level: CPU + SRAM direct (v0)
+│   ├── top_v1.sv            # Top-level: CPU + AXI + SRAM (v1)
+│   ├── SRAM_wrapper_v0.sv   # SRAM wrapper: direct CPU signals (v0)
+│   ├── SRAM_wrapper_v1.sv   # SRAM wrapper: AXI slave interface (v1+)
+│   ├── Mux.sv               # Shared mux primitives
+│   ├── CPU/
+│   │   ├── CPU.sv           # Pipeline CPU core
+│   │   ├── Controller.sv    # Control signal decoder
+│   │   ├── rst_buff.sv      # Reset buffer
+│   │   ├── IF/
+│   │   │   ├── Reg_PC.sv    # Program counter register
+│   │   │   └── IF_ID.sv     # IF/ID pipeline register
+│   │   ├── ID/
+│   │   │   ├── Decoder.sv   # Instruction decoder
+│   │   │   ├── Imm_Ext.sv   # Immediate sign extension
+│   │   │   ├── RegFile.sv   # 32-entry register file
+│   │   │   └── ID_EX.sv     # ID/EX pipeline register
+│   │   ├── EX/
+│   │   │   ├── ALU.sv       # Arithmetic logic unit
+│   │   │   ├── JB_Unit.sv   # Jump/branch target unit
+│   │   │   ├── Multiplier.sv # 32×32 combinational multiplier
+│   │   │   └── EX_MEM.sv    # EX/MEM pipeline register
+│   │   ├── MEM/
+│   │   │   ├── ST_align_unit.sv # Store alignment (SB/SH/SW)
+│   │   │   ├── csr_unit.sv  # CSR counter unit
+│   │   │   └── MEM_WB.sv    # MEM/WB pipeline register
+│   │   └── WB/
+│   │       └── LD_align_unit.sv # Load alignment (LB/LH/LBU/LHU)
+│   └── AXI/
+│       └── AXI.sv           # AXI4 interconnect (v1+)
 ├── sim_v0/
-│   ├── top_tb.sv            # Testbench (irun, no AXI)
+│   ├── top_tb.sv            # Testbench (irun, no AXI, includes top_v0.sv)
 │   ├── SRAM/                # SRAM model (not committed, copyright)
 │   └── prog0~5/             # Test programs
 ├── sim_v1/
-│   ├── top_tb.sv            # Testbench (vcs, AXI4)
+│   ├── top_tb.sv            # Testbench (vcs, AXI4, includes top_v1.sv)
 │   ├── SRAM/                # SRAM model (not committed, copyright)
 │   └── prog0~5/             # Test programs (split IM/DM hex)
-├── src/
-│   └── AXI/
-│       └── AXI.sv           # AXI4 bus (v1 only)
 ├── include/
 │   ├── CPU_def.svh          # Shared definitions
-│   └── AXI_define.svh       # AXI4 defines (v1 only)
+│   └── AXI_define.svh       # AXI4 defines (v1+)
 ├── vip/                     # JasperGold AXI formal VIP
 └── Makefile
 ```

@@ -1,4 +1,4 @@
-`include "./SRAM_wrapper.sv"
+`include "./SRAM_wrapper_v0.sv"
 `include "./CPU/CPU.sv"
 
 module top (

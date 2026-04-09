@@ -7,7 +7,7 @@
 `timescale 1ns/10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib.src"
 `else
-`include "top.sv"
+`include "top_v1.sv"
 `include "SRAM/SRAM_rtl.sv"
 `endif
 `timescale 1ns/10ps
